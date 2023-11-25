@@ -48,6 +48,3 @@ def test_convolution_1d():
 
 # Call the test function
 test_convolution_1d()
-
-
-test_convolution_1d()
