@@ -2,7 +2,7 @@ import numpy as np
 
 # create a list of intergers,
 n = 30
-int_list = np.arange(0, n)
+int_list = np.arange(1, n)
 
 for entry in int_list:
     if entry % 15 == 0:
