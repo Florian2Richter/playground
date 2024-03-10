@@ -1,10 +1,7 @@
-import numpy as np
-
 # create a list of intergers,
 n = 30
-int_list = np.arange(1, n)
 
-for entry in int_list:
+for entry in range(1, n + 1):
     if entry % 15 == 0:
         print("FizzBuzz!")
     elif entry % 5 == 0:
