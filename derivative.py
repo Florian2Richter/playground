@@ -21,8 +21,8 @@ def derivative(image, dx):
 
 # calculate the derivative of some function
 dx = 0.001
-values = np.arange(0, 2 * 3.14, dx)
-shifted_values = shift(values)
+values = np.arange(0, 2 * 3.141 + dx, dx)
+
 
 alpha = 1
 image = func(alpha, values)
