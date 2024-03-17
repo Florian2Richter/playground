@@ -26,7 +26,7 @@ class LogisticRegression:
     def loss(self, pred, y):
         return -np.mean(y * np.log(pred) + (1 - y) * np.log(1 - pred))
 
-    def gradient(self, pred, y, x):
+    def gradient(self, pred, x, y):
 
         a_grad = np.mean((pred - y) * x)
         b_grad = np.mean(pred - y)
@@ -34,8 +34,8 @@ class LogisticRegression:
         return a_grad, b_grad
 
     def update(self, stepsize):
-        self.a = self.a * stepsize * self.a_grad
-        self.b = self.b * stepsize * self.b_grad
+        self.a = self.a - stepsize * self.a_grad
+        self.b = self.b - stepsize * self.b_grad
         return
 
     def train(self, x, y, stepsize=0.001):
