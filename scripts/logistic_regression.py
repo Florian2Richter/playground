@@ -14,14 +14,15 @@ df["Class"] = df["Class"].replace({2: 0, 4: 1})
 
 
 class LogisticRegression:
-    def __init__(self, a_0, b_0):
+    def __init__(self, a_0, b_0, x):
         self.a = a_0
         self.b = b_0
         self.a_grad = 0
         self.b_grad = 0
+        self.pred = self.logit(x)
 
     def logit(self, x):
-        return 1 / (1 + np.exp(-(self.a * x + self.b)))
+        return 1 / (1 + np.exp(-(np.dot(self.a, x) + np.sum(self.b))))
 
     def loss(self, pred, y):
         return -np.mean(y * np.log(pred) + (1 - y) * np.log(1 - pred))
@@ -38,7 +39,7 @@ class LogisticRegression:
         self.b = self.b - stepsize * self.b_grad
         return
 
-    def train(self, x, y, stepsize=0.001):
+    def train(self, x, y, stepsize=0.01):
         pred = self.logit(x)
         print("loss is")
         print(self.loss(pred, y))
@@ -48,20 +49,24 @@ class LogisticRegression:
 
 
 # initialize
-logitistic_regressor = LogisticRegression(np.random.rand(), np.random.rand())
-x = df["Mitoses"]
+x = df.drop(columns="Class").iloc[0].to_numpy()  # get the whole dat
 y = df["Class"]
-pred = logitistic_regressor.logit(x)
+# in this case set up a 9 dimensional regressor
+logitistic_regressor = LogisticRegression(np.random.rand(9), np.random.rand(9), x)
+print(logitistic_regressor.logit(x))
+
 # testplot
-print(logitistic_regressor.loss(pred, y))
+# print(logitistic_regressor.loss(pred, y))
 
-# now train the regression
+# # now train the regression
 
-for i in range(10):
-    print(f"Training step {i}")
-    logitistic_regressor.train(x, y)
-
-# y = np.array([1, 0, 1, 1, 0])  # Ground truth labels
-# pred = np.array([0.9, 0.1, 0.8, 0.7, 0.2])  # Model predictions
-#
-# plt.show()
+# for i in range(1000):
+#     print(f"Training step {i}")
+#     logitistic_regressor.train(x, y)
+#     if i % 100 == 0:
+#         plt.scatter(x, logitistic_regressor.logit(x))
+#         plt.show(
+#             block=False
+#         )  # `block=False` ensures that the code execution continues after plt.show()
+#         plt.pause(0.5)
+#         plt.close()
