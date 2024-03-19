@@ -73,12 +73,15 @@ print(f"loss is {logistic_regressor.loss(pred,y)}")
 # print(logitistic_regressor.loss(pred, y))
 
 # # now train the regression
-
+training_loss = []
+test_accuracy = []
 for i in range(100000):
     logistic_regressor.train(X_train, y_train)
     if i % 1000 == 0:
-        print(f"Training step {i}")
-        print(
-            f"training loss is {logistic_regressor.loss(logistic_regressor.probability(X_train), y_train)}"
+        train_loss = logistic_regressor.loss(
+            logistic_regressor.probability(X_train), y_train
         )
-        print(f"test accuracy is {logistic_regressor.accuracy(X_test,y_test)}")
+        test_accuracy = logistic_regressor.accuracy(X_test, y_test)
+        print(f"Training step {i}")
+        print(f"training loss is {train_loss}")
+        print(f"test accuracy is {test_accuracy}")
