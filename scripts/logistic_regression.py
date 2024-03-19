@@ -41,13 +41,17 @@ class LogisticRegression:
     def update(self, stepsize):
         self.a = self.a - stepsize * self.a_grad
         self.b = self.b - stepsize * self.b_grad
-        return
 
     def train(self, X, y, stepsize=0.01):
         pred = self.probability(X)
         self.a_grad, self.b_grad = self.gradient(pred, X, y)
         self.update(stepsize)
-        return
+
+    def accuracy(self, X, y, threshold=0.5):
+        probs = self.probability(X)
+        predictions = np.array(probs > threshold, dtype=int)
+        corrects = np.sum(y == predictions)
+        return corrects / len(y)
 
 
 # initialize
@@ -77,4 +81,4 @@ for i in range(100000):
         print(
             f"training loss is {logistic_regressor.loss(logistic_regressor.probability(X_train), y_train)}"
         )
-        print(f"test accuracy")
+        print(f"test accuracy is {logistic_regressor.accuracy(X_test,y_test)}")
