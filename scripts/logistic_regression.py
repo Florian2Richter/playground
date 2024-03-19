@@ -56,11 +56,13 @@ class LogisticRegression:
 
 # initialize
 X = df.drop(columns="Class").to_numpy()  # get the whole dat
+
+# now normalize the data-> tomorrow
 y = df["Class"].to_numpy()
 # split into training and test
 indices = list(range(len(y)))
 random.shuffle(indices)
-split_idx = int(len(y) * 0.8)
+split_idx = int(len(y) * 0.6)
 X_train, y_train = X[indices[:split_idx]], y[indices[:split_idx]]
 X_test, y_test = X[indices[split_idx:]], y[indices[split_idx:]]
 
