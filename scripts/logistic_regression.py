@@ -19,10 +19,12 @@ class LogisticRegression:
         self.b = b_0
         self.a_grad = 0
         self.b_grad = 0
-        self.pred = self.logit(x)
 
-    def logit(self, x):
-        return 1 / (1 + np.exp(-(np.dot(self.a, x) + np.sum(self.b))))
+    def sigmoid(self, z):
+        return 1 / (1 + np.exp(-z))
+
+    def predict(self, x):
+        z = np.dot(x, self.a) + self.b
 
     def loss(self, pred, y):
         return -np.mean(y * np.log(pred) + (1 - y) * np.log(1 - pred))
@@ -49,11 +51,8 @@ class LogisticRegression:
 
 
 # initialize
-x = df.drop(columns="Class").iloc[0].to_numpy()  # get the whole dat
-y = df["Class"]
-# in this case set up a 9 dimensional regressor
-logitistic_regressor = LogisticRegression(np.random.rand(9), np.random.rand(9), x)
-print(logitistic_regressor.logit(x))
+x = df.drop(columns="Class").to_numpy()  # get the whole dat
+y = df["Class"].to_numpy()
 
 # testplot
 # print(logitistic_regressor.loss(pred, y))
