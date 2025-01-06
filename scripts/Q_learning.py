@@ -3,6 +3,10 @@ import random
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
+# <-- Added/Modified
+import matplotlib.image as mpimg
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+
 
 # Define the environment
 class GridEnvironment:
@@ -11,7 +15,6 @@ class GridEnvironment:
         self.start = 0
         self.goal = size * size - 1
         self.state = self.start
-        # Define obstacle states
         if obstacles is None:
             self.obstacles = []
         else:
@@ -152,16 +155,22 @@ class GridVisualizer:
             self.ax.add_patch(obstacle_patch)
             self.obstacle_patches.append(obstacle_patch)
 
-        # Initialize agent's representation as a blue circle
-        self.agent_circle = patches.Circle(
-            (0.5, self.size - 0.5),
-            0.3,
-            linewidth=1,
-            edgecolor="b",
-            facecolor="blue",
+        # -- Removed the agent circle patch --
+        # self.agent_circle = patches.Circle((0.5, self.size - 0.5), 0.3,
+        #    linewidth=1, edgecolor="b", facecolor="blue", zorder=5)
+        # self.ax.add_patch(self.agent_circle)
+
+        # <-- Added/Modified: Load agent PNG and wrap it for display
+        # Adjust the filename "agent.png" and the zoom factor as needed
+        self.agent_img = mpimg.imread("robi_mini.png")  # Your PNG file
+        self.agent_imgbox = OffsetImage(self.agent_img, zoom=0.3)  # Scale image down
+        self.agent_ab = AnnotationBbox(
+            self.agent_imgbox,
+            (0.5, self.size - 0.5),  # initial position
+            frameon=False,
             zorder=5,
         )
-        self.ax.add_patch(self.agent_circle)
+        self.ax.add_artist(self.agent_ab)
 
         plt.ion()
         plt.show()
@@ -170,9 +179,19 @@ class GridVisualizer:
         row, col = divmod(state, self.size)
         x = col + 0.5
         y = self.size - row - 0.5
-        self.agent_circle.center = (x, y)
-        plt.draw()
-        plt.pause(0.05)  # Reduced pause time for faster animation
+
+        # Remove the old annotation
+        self.agent_ab.remove()
+
+        # Create a new annotation at the new (x, y)
+        self.agent_ab = AnnotationBbox(
+            self.agent_imgbox, (x, y), frameon=False, zorder=5
+        )
+        self.ax.add_artist(self.agent_ab)
+
+        self.fig.canvas.draw()
+        self.fig.canvas.flush_events()
+        plt.pause(0.00001)
 
     def close(self):
         plt.ioff()
@@ -183,7 +202,7 @@ class GridVisualizer:
 def train_agent(episodes=50):
     # Define obstacle states (for a 4x4 grid, states 5, 7, 10 are chosen as obstacles)
     obstacles = [5, 7, 10]
-    env = GridEnvironment(size=4, obstacles=obstacles)
+    env = GridEnvironment(size=6, obstacles=obstacles)
     agent = QLearningAgent(state_size=env.size * env.size, action_size=4)
     visualizer = GridVisualizer(env)
 
