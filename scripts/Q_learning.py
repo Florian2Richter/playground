@@ -2,8 +2,6 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-
-# <-- Added/Modified
 import matplotlib.image as mpimg
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
@@ -155,22 +153,46 @@ class GridVisualizer:
             self.ax.add_patch(obstacle_patch)
             self.obstacle_patches.append(obstacle_patch)
 
-        # -- Removed the agent circle patch --
-        # self.agent_circle = patches.Circle((0.5, self.size - 0.5), 0.3,
-        #    linewidth=1, edgecolor="b", facecolor="blue", zorder=5)
-        # self.ax.add_patch(self.agent_circle)
-
-        # <-- Added/Modified: Load agent PNG and wrap it for display
-        # Adjust the filename "agent.png" and the zoom factor as needed
-        self.agent_img = mpimg.imread("robi_mini.png")  # Your PNG file
+        # Load agent PNG and wrap it for display
+        self.agent_img = mpimg.imread("robi_mini.png")  # Ensure this file exists
         self.agent_imgbox = OffsetImage(self.agent_img, zoom=0.3)  # Scale image down
+        # Initialize agent at start position
+        start_row, start_col = divmod(env.start, self.size)
+        start_x = start_col + 0.5
+        start_y = self.size - start_row - 0.5
         self.agent_ab = AnnotationBbox(
             self.agent_imgbox,
-            (0.5, self.size - 0.5),  # initial position
+            (start_x, start_y),
             frameon=False,
             zorder=5,
         )
         self.ax.add_artist(self.agent_ab)
+
+        # Initialize Q-value text annotations for each state-action pair
+        self.q_texts = {}
+        for s in range(self.size * self.size):
+            row, col = divmod(s, self.size)
+            center_x = col + 0.5
+            center_y = self.size - row - 0.5
+            # Positions for each action relative to the center of the cell
+            positions = {
+                0: (center_x, center_y + 0.3),  # Up
+                1: (center_x, center_y - 0.3),  # Down
+                2: (center_x - 0.3, center_y),  # Left
+                3: (center_x + 0.3, center_y),  # Right
+            }
+            for action, pos in positions.items():
+                text_obj = self.ax.text(
+                    pos[0],
+                    pos[1],
+                    f"{0.00}",
+                    ha="center",
+                    va="center",
+                    fontsize=8,
+                    color="black",
+                    zorder=6,
+                )
+                self.q_texts[(s, action)] = text_obj
 
         plt.ion()
         plt.show()
@@ -193,6 +215,12 @@ class GridVisualizer:
         self.fig.canvas.flush_events()
         plt.pause(0.00001)
 
+    def update_q_texts(self, Q):
+        # Update the text annotations with new Q-values
+        for (s, a), text_obj in self.q_texts.items():
+            text_obj.set_text(f"{Q[s, a]:.2f}")
+        self.fig.canvas.draw()
+
     def close(self):
         plt.ioff()
         plt.show()
@@ -200,9 +228,9 @@ class GridVisualizer:
 
 # Training the agent with visualization
 def train_agent(episodes=50):
-    # Define obstacle states (for a 4x4 grid, states 5, 7, 10 are chosen as obstacles)
+    # Define obstacle states (for a 6x6 grid example)
     obstacles = [5, 7, 10]
-    env = GridEnvironment(size=6, obstacles=obstacles)
+    env = GridEnvironment(size=4, obstacles=obstacles)
     agent = QLearningAgent(state_size=env.size * env.size, action_size=4)
     visualizer = GridVisualizer(env)
 
@@ -218,14 +246,16 @@ def train_agent(episodes=50):
             state = next_state
             steps += 1
 
-            # Update visualization
+            # Update visualization for agent movement
             visualizer.update_agent_position(state)
 
             if done:
                 print(f"Episode {episode + 1}: reached goal in {steps} steps.")
                 break
 
+        # Decay exploration rate and update Q-values display at end of episode
         agent.decay_epsilon()
+        visualizer.update_q_texts(agent.Q)
 
     visualizer.close()
     return agent.Q
