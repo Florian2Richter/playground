@@ -1,7 +1,8 @@
-import pandas as pd
 import os
-import numpy as np
 import random
+
+import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 import torch
 
@@ -9,20 +10,6 @@ dtype = torch.float
 device = "cuda" if torch.cuda.is_available() else "cpu"
 torch.set_default_device(device)
 
-csv_file_path = os.path.dirname(os.path.abspath(__file__)) + "/breast_cancer.csv"
-df = pd.read_csv(csv_file_path)
-
-# try to replace the values (2=benign) and (4=malignant) by 0 and 1
-df["Class"] = df["Class"].replace({2: 0, 4: 1})
-
-# initialize data 
-X_np = df.drop(columns="Class").to_numpy()  # get the whole dat
-
-# now normalize the data-> tomorrow
-y_np = df["Class"].to_numpy()
-
-X = torch.from_numpy(X_np).to(device).float()
-y = torch.from_numpy(y_np).to(device).float()
 
 class LogisticRegression:
     def __init__(self, X):
@@ -50,19 +37,36 @@ class LogisticRegression:
             self.b.grad = None
 
     def train(self, X, y):
-        self.loss(self.probability(X),y).backward()
+        self.loss(self.probability(X), y).backward()
 
 def accuracy(predictor, X, y, threshold=0.5):
-    probs = predictor.probability(X).to_numpy()
+    probs = predictor.probability(X).to("cpu").numpy()
     predictions = np.array(probs > threshold, dtype=int)
     corrects = np.sum(y == predictions)
     return corrects / len(y)
 
-predictor = LogisticRegression(X)
-for step in range(500):
-    predictor.train(X,y)
-    predictor.update()
-    loss = predictor.loss(predictor.probability(X),y)
-    print(f"loss is {loss}")
+
+def load_data():
+    csv_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "breast_cancer.csv")
+    df = pd.read_csv(csv_file_path)
+    df["Class"] = df["Class"].replace({2: 0, 4: 1})
+    X_np = df.drop(columns="Class").to_numpy()
+    y_np = df["Class"].to_numpy()
+    X = torch.from_numpy(X_np).to(device).float()
+    y = torch.from_numpy(y_np).to(device).float()
+    return X, y
 
 
+def main():
+    X, y = load_data()
+
+    predictor = LogisticRegression(X)
+    for step in range(500):
+        predictor.train(X, y)
+        predictor.update()
+        loss = predictor.loss(predictor.probability(X), y)
+        print(f"loss is {loss}")
+
+
+if __name__ == "__main__":
+    main()
